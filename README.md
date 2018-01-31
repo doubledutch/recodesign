@@ -1,6 +1,6 @@
 # Recodesign
 
-This script provides an easy way to codesign a DoubleDutch created event app. 
+This script provides an easy way to codesign a DoubleDutch created iOS event app.
 
 ## Getting Started
 
