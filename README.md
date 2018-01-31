@@ -40,9 +40,9 @@ sh path/to/recodesign.sh path/to/app.ipa path/to/profile.mobileprovision
 * There are several optional flags.
   * `e` For Enterprise Distribution (internal distribution, but not ad hoc)
   * `h` help
-	* `t` enable TestFlight option in script (TestFlight is enabled by default)
-	* `v` change the version and use a new provisioning profile
-if using a flag use immediately after script name, you can use multiple flags
+  * `t` enable TestFlight option in script (TestFlight is enabled by default)
+  * `v` change the version and use a new provisioning profile
+
 ```
 sh path/to/recodesign.sh -e path/to/app.ipa path/to/profile.mobileprovision
 ```
