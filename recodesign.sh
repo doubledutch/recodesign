@@ -60,7 +60,6 @@ done
 
 datevar=$(date +%m_%d_%H_%M)
 tmpDir=$(mktemp -dt codesigndd)
-open $tmpDir
 currentDir=$(pwd)
 
 # determine file type and assign to correct value
