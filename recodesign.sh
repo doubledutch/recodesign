@@ -3,7 +3,7 @@
 # Resigning DoubleDutch created ios apps, here we go!
 # This script requires the path to the .ipa file provided by DoubleDutch
 # This script requires the path to the provisioning profile
-# pass all the arguments in any order ( http://xkcd.com/499/ )
+# pass all the arguments in any order
 
 function info {             # print an info log
   printf "\033[32m==> %s\033[0m\n" "$1"
@@ -124,8 +124,9 @@ if [[ profileCheck -lt 1 ]]; then
 fi
 expiryDate=$(/usr/libexec/PlistBuddy -c "Print ExpirationDate" temp.plist | cut -d " " -f 1-3,6 -) 2> /dev/null
 expiryFormatted=$(date -jf"%a %b %d %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
+expiryINTLFormatted=$(date -jf"%a %d %b %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
 todayFormatted=$(date +%Y%m%d) 2> /dev/null
-if [[ "$expiryFormatted" -lt "$todayFormatted" ]];
+if [[ "$expiryFormatted" -lt "$todayFormatted" && "$expiryINTLFormatted" -lt "$todayFormatted"]];
 	then
 	error "Provisioning profile has expired.
 	Go to developer.apple.com and update Provisioning profile with an up to date Distribution certificate."
@@ -264,9 +265,10 @@ validationReverseURL=$(grep "Identifier" validation.txt | cut -d "=" -f2 | tr "\
 validationTeamDigit=$(grep "TeamIdentifier" validation.txt | cut -d "=" -f2)
 validationSignedTime=$(grep "Signed Time" validation.txt | cut -d "=" -f2 | cut -d "," -f1-2)
 validationSignedTimeFormatted=$(date -jf"%b %d, %Y" "$validationSignedTime" +%Y%m%d)
+validationSignedINTLTimeFormatted=$(date -jf"%d %b, %Y" "$validationSignedTime" +%Y%m%d)
 entitlementsSigningTeamDigit=$(/usr/libexec/PlistBuddy -c "Print com.apple.developer.team-identifier" entitlements.plist)
 
-if [[ "$validationSignedTimeFormatted" -ne "$todayFormatted" ]];
+if [[ "$validationSignedTimeFormatted" -ne "$todayFormatted" &&  "$validationSignedINTLTimeFormatted" -ne "$todayFormatted"]];
 	then
 	error "Time of codesigning not correct. Codesigning was not successful."
 fi
