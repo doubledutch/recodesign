@@ -124,12 +124,15 @@ if [[ profileCheck -lt 1 ]]; then
 fi
 expiryDate=$(/usr/libexec/PlistBuddy -c "Print ExpirationDate" temp.plist | cut -d " " -f 1-3,6 -) 2> /dev/null
 expiryFormatted=$(date -jf"%a %b %d %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
-expiryINTLFormatted=$(date -jf"%a %d %b %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
 todayFormatted=$(date +%Y%m%d) 2> /dev/null
-if [[ "$expiryFormatted" -lt "$todayFormatted" && "$expiryINTLFormatted" -lt "$todayFormatted"]];
+if [[ "$expiryFormatted" -lt "$todayFormatted" ]];
 	then
-	error "Provisioning profile has expired.
-	Go to developer.apple.com and update Provisioning profile with an up to date Distribution certificate."
+	expiryINTLFormatted=$(date -jf"%a %d %b %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
+	if [[ "$expiryINTLFormatted" -lt "$todayFormatted" ]];
+		then
+		error "Provisioning profile has expired.
+		Go to developer.apple.com and update Provisioning profile with an up to date Distribution certificate."
+	fi
 fi
 
 pushCheck=$(/usr/libexec/PlistBuddy -c "Print Entitlements:aps-environment" temp.plist)
@@ -265,12 +268,15 @@ validationReverseURL=$(grep "Identifier" validation.txt | cut -d "=" -f2 | tr "\
 validationTeamDigit=$(grep "TeamIdentifier" validation.txt | cut -d "=" -f2)
 validationSignedTime=$(grep "Signed Time" validation.txt | cut -d "=" -f2 | cut -d "," -f1-2)
 validationSignedTimeFormatted=$(date -jf"%b %d, %Y" "$validationSignedTime" +%Y%m%d)
-validationSignedINTLTimeFormatted=$(date -jf"%d %b, %Y" "$validationSignedTime" +%Y%m%d)
 entitlementsSigningTeamDigit=$(/usr/libexec/PlistBuddy -c "Print com.apple.developer.team-identifier" entitlements.plist)
 
-if [[ "$validationSignedTimeFormatted" -ne "$todayFormatted" &&  "$validationSignedINTLTimeFormatted" -ne "$todayFormatted"]];
+if [[ "$validationSignedTimeFormatted" -ne "$todayFormatted" ]];
 	then
-	error "Time of codesigning not correct. Codesigning was not successful."
+	validationSignedINTLTimeFormatted=$(date -jf"%d %b, %Y" "$validationSignedTime" +%Y%m%d)
+	if [[ "$validationSignedINTLTimeFormatted" -ne "$todayFormatted" ]];
+		then
+		error "Time of codesigning not correct. Codesigning was not successful."
+	fi
 fi
 printf " Validating the signing [-   ]\r"
 sleep 1
