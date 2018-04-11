@@ -1,5 +1,6 @@
 #!/bin/sh 
 # This script was written by Kyle Louis at DoubleDutch
+# and is maintained by Dawson Loudon at DoubleDutch
 # Resigning DoubleDutch created ios apps, here we go!
 # This script requires the path to the .ipa file provided by DoubleDutch
 # This script requires the path to the provisioning profile
@@ -17,7 +18,39 @@ function error {            # print an error log
 function prompt {             # print an info log
   printf "\033[34m==> %s\033[0m\n" "$1"
 }
-info "This is version 2.0.0"
+
+function setTimeSignature {
+	sig1=^\([0-9]{1,2}\)\.[[:space:]]\([A-Za-z]*\)[[:space:]]\([0-9]{4}\)
+	sig2=^\([0-9]{1,2}\)[[:space:]]\([A-Za-z]*\),[[:space:]]\([0-9]{4}\)
+	sig3=^\([A-Za-z]*\)[[:space:]]\([0-9]{1,2}\),[[:space:]]\([0-9]{4}\)
+	sig4=^\([0-9]{1,2}\)[[:space:]]\([A-Za-z]*\)[[:space:]]\([0-9]{4}\)
+
+	if [[ "$1" =~ $sig1 ]]; then
+		timeSignature="%d. %b %Y"
+		matchedSig=true
+	fi
+
+	if [[ "$1" =~ $sig2 ]]; then
+		timeSignature="%d %b, %Y"
+		matchedSig=true
+	fi
+
+	if [[ "$1" =~ $sig3 ]]; then
+		timeSignature="%b %d, %Y"
+		matchedSig=true
+	fi
+
+	if [[ "$1" =~ $sig4 ]]; then
+		timeSignature="%d %b %Y"
+		matchedSig=true
+	fi
+
+	if ! [[ "$matchedSig" ]]; then
+		error "Signature date is not recognised. Please take a screenshot and contact customer support. Invalid signature date: $1"
+	fi
+}
+
+info "This is version 2.1.0"
 info "If you run into issues, please take screenshots of your terminal window and share with DoubleDutch."
 
 
@@ -125,14 +158,9 @@ fi
 expiryDate=$(/usr/libexec/PlistBuddy -c "Print ExpirationDate" temp.plist | cut -d " " -f 1-3,6 -) 2> /dev/null
 expiryFormatted=$(date -jf"%a %b %d %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
 todayFormatted=$(date +%Y%m%d) 2> /dev/null
-if [[ "$expiryFormatted" -lt "$todayFormatted" ]];
-	then
-	expiryINTLFormatted=$(date -jf"%a %d %b %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
-	if [[ "$expiryINTLFormatted" -lt "$todayFormatted" ]];
-		then
-		error "Provisioning profile has expired.
-		Go to developer.apple.com and update Provisioning profile with an up to date Distribution certificate."
-	fi
+if [[ "$expiryFormatted" -lt "$todayFormatted" ]]; then
+	error "Provisioning profile has expired.
+	Go to developer.apple.com and update Provisioning profile with an up to date Distribution certificate."
 fi
 
 pushCheck=$(/usr/libexec/PlistBuddy -c "Print Entitlements:aps-environment" temp.plist)
@@ -239,7 +267,6 @@ else
 fi
 
 certHashCount=$(grep "$certHash" identity.txt | wc -l | tr -d [:blank:]) 
-
 if ! [[ "$certHashCount" == "0" ]]; then
 		info "Distribution Certificate present for $teamNameProvisioningProfile"
 		info "Codesigning the App"
@@ -258,6 +285,7 @@ elif [[ "$certHashCount" == "0" ]]; then
 	Match the expiry date of the Distribution Certificate with that from the provisioning profile, which is $expirydate"
 fi
 
+
 #info "This is the contents of entitlements file that was used:"
 #codesign -d --entitlements :- Payload/Flock.app
 
@@ -267,13 +295,13 @@ codesign -dvvv Payload/Flock.app &> validation.txt
 validationReverseURL=$(grep "Identifier" validation.txt | cut -d "=" -f2 | tr "\n" " " | cut -d " " -f1)
 validationTeamDigit=$(grep "TeamIdentifier" validation.txt | cut -d "=" -f2)
 validationSignedTime=$(grep "Signed Time" validation.txt | cut -d "=" -f2 | cut -d "," -f1-2)
-validationSignedTimeFormatted=$(date -jf"%b %d, %Y" "$validationSignedTime" +%Y%m%d)
+
 entitlementsSigningTeamDigit=$(/usr/libexec/PlistBuddy -c "Print com.apple.developer.team-identifier" entitlements.plist)
 
-if [[ "$validationSignedTimeFormatted" -ne "$todayFormatted" ]];
-	then
-	validationSignedINTLTimeFormatted=$(date -jf"%d %b, %Y" "$validationSignedTime" +%Y%m%d)
-	if [[ "$validationSignedINTLTimeFormatted" -ne "$todayFormatted" ]];
+setTimeSignature "$validationSignedTime"
+if [[ "$timeSignature" ]]; then
+	validationSignedTimeFormatted=$(date -jf"$timeSignature" "$validationSignedTime" +%Y%m%d)
+	if [[ "$validationSignedTimeFormatted" -ne "$todayFormatted" ]];
 		then
 		error "Time of codesigning not correct. Codesigning was not successful."
 	fi
