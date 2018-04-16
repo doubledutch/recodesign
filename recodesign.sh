@@ -47,10 +47,12 @@ function setTimeSignature {
 
 	if ! [[ "$matchedSig" ]]; then
 		error "Signature date is not recognised. Please take a screenshot and contact customer support. Invalid signature date: $1"
+	else
+		info "time sig. used: $timeSignature"
 	fi
 }
 
-info "This is version 2.1.0"
+info "This is version 2.1.1"
 info "If you run into issues, please take screenshots of your terminal window and share with DoubleDutch."
 
 
@@ -274,10 +276,8 @@ if ! [[ "$certHashCount" == "0" ]]; then
 			info "Signing app for Enterprise Distribution"
 			codesign -fs "$certHash" Payload/Flock.app/Frameworks/*.dylib
 		fi
-		if [[ -e Payload/Flock.app/Frameworks/Sentry.framework ]]; then
+ 		if [[ -e Payload/Flock.app/Frameworks/Sentry.framework ]]; then
 			codesign -fs "$certHash" Payload/Flock.app/Frameworks/Sentry.framework >/dev/null
-		else
-			error "Sentry Framework is missing."
 		fi
 		codesign -fs "$certHash" --entitlements entitlements.plist Payload/Flock.app >/dev/null
 elif [[ "$certHashCount" == "0" ]]; then
@@ -295,7 +295,6 @@ codesign -dvvv Payload/Flock.app &> validation.txt
 validationReverseURL=$(grep "Identifier" validation.txt | cut -d "=" -f2 | tr "\n" " " | cut -d " " -f1)
 validationTeamDigit=$(grep "TeamIdentifier" validation.txt | cut -d "=" -f2)
 validationSignedTime=$(grep "Signed Time" validation.txt | cut -d "=" -f2 | cut -d "," -f1-2)
-
 entitlementsSigningTeamDigit=$(/usr/libexec/PlistBuddy -c "Print com.apple.developer.team-identifier" entitlements.plist)
 
 setTimeSignature "$validationSignedTime"
@@ -303,6 +302,7 @@ if [[ "$timeSignature" ]]; then
 	validationSignedTimeFormatted=$(date -jf"$timeSignature" "$validationSignedTime" +%Y%m%d)
 	if [[ "$validationSignedTimeFormatted" -ne "$todayFormatted" ]];
 		then
+		info "Comparing $validationSignedTimeFormatted to $todayFormatted failed."
 		error "Time of codesigning not correct. Codesigning was not successful."
 	fi
 fi
