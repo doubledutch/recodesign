@@ -276,6 +276,9 @@ if ! [[ "$certHashCount" == "0" ]]; then
 			info "Signing app for Enterprise Distribution"
 			codesign -fs "$certHash" Payload/Flock.app/Frameworks/*.dylib
 		fi
+ 		if [[ -e Payload/Flock.app/Frameworks/Sentry.framework ]]; then
+			codesign -fs "$certHash" Payload/Flock.app/Frameworks/Sentry.framework >/dev/null
+		fi
 		codesign -fs "$certHash" --entitlements entitlements.plist Payload/Flock.app >/dev/null
 elif [[ "$certHashCount" == "0" ]]; then
 	error "The correct distribution certificate is not present in Keychain Access. 
