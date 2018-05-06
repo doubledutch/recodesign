@@ -52,7 +52,7 @@ function setTimeSignature {
 	fi
 }
 
-info "This is version 2.1.1"
+info "This is version 2.2.1"
 info "If you run into issues, please take screenshots of your terminal window and share with DoubleDutch."
 
 
@@ -160,11 +160,15 @@ fi
 expiryDate=$(/usr/libexec/PlistBuddy -c "Print ExpirationDate" temp.plist | cut -d " " -f 1-3,6 -) 2> /dev/null
 expiryFormatted=$(date -jf"%a %b %d %Y" "$expiryDate" +%Y%m%d) 2> /dev/null
 todayFormatted=$(date +%Y%m%d) 2> /dev/null
+
+info "$expiryFormatted to $todayFormatted"
+ 
 if [[ "$expiryFormatted" -lt "$todayFormatted" ]]; then
 	error "Provisioning profile has expired.
 	Go to developer.apple.com and update Provisioning profile with an up to date Distribution certificate."
 fi
 
+testFlightCheck=$(/usr/libexec/PlistBuddy -c "Print Entitlements:beta-reports-active" temp.plist)
 pushCheck=$(/usr/libexec/PlistBuddy -c "Print Entitlements:aps-environment" temp.plist)
 asdCheck=$(grep -c "com.apple.developer.associated-domains" temp.plist)
 appIdLong=$(/usr/libexec/PlistBuddy -c "Print Entitlements:application-identifier" temp.plist)
@@ -173,6 +177,8 @@ reverseUrl=$(echo $appIdLong | cut -d "." -f2- )
 finalName=$(echo $reverseUrl | tr "." "_")
 teamNameProvisioningProfile=$(/usr/libexec/PlistBuddy -c "Print TeamName" temp.plist)
 teamIdProvisioningProfile=$(/usr/libexec/PlistBuddy -c "Print TeamIdentifier:0" temp.plist)
+
+contextId=$(/usr/libexec/PlistBuddy -c "Print DDContextIdentifier" Info.plist)
 
 if [[ ! $teamIdProvisioningProfile ==  $appIdPrefix ]]; then
 	info "Team ID and App ID Prefix do not match. This is allowed but not advised. No action needed at this time."
@@ -186,6 +192,9 @@ fi
 /usr/libexec/PlistBuddy -c "Set com.apple.developer.team-identifier $teamIdProvisioningProfile" entitlements.plist
 /usr/libexec/PlistBuddy -c "Set application-identifier $appIdLong" entitlements.plist
 /usr/libexec/PlistBuddy -c "Set keychain-access-groups:0 $appIdLong" entitlements.plist
+/usr/libexec/PlistBuddy -c "Set com.apple.developer.associated-domains:0 applinks:www.doubledutch.me" entitlements.plist
+/usr/libexec/PlistBuddy -c "Set com.apple.developer.associated-domains:1 applinks:doubledutch.me" entitlements.plist
+/usr/libexec/PlistBuddy -c "Set com.apple.developer.associated-domains:2 applinks:$contextId.doubledutch.io" entitlements.plist
 
 
 if [[ $testFlightOpt ]]; then
@@ -212,7 +221,13 @@ if [[ "$pushCheck" = "production" ]];
 			info "This provisioning profile cannot be used for upload to App Store."
 			/usr/libexec/PlistBuddy -c "Set aps-environment development" entitlements.plist
 	else
-		error "This provisioning profile doesn't have push entitlement!"
+		info "This provisioning profile doesn't have push entitlement!"
+fi
+
+info "Testflight Enabled: $testFlightCheck"
+
+if [[ "$testFlightCheck" == "true" ]]; then
+	/usr/libexec/PlistBuddy -c "Add beta-reports-active YES" entitlements.plist
 fi
 
 # move the provisioning profile into the app
@@ -292,6 +307,9 @@ fi
 # validation
 printf "Validating the signing [    ]\r"
 codesign -dvvv Payload/Flock.app &> validation.txt 
+
+cat validation.txt
+
 validationReverseURL=$(grep "Identifier" validation.txt | cut -d "=" -f2 | tr "\n" " " | cut -d " " -f1)
 validationTeamDigit=$(grep "TeamIdentifier" validation.txt | cut -d "=" -f2)
 validationSignedTime=$(grep "Signed Time" validation.txt | cut -d "=" -f2 | cut -d "," -f1-2)
