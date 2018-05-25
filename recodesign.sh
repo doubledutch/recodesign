@@ -52,7 +52,7 @@ function setTimeSignature {
 	fi
 }
 
-info "This is version 2.2.1"
+info "This is version 2.2.2"
 info "If you run into issues, please take screenshots of your terminal window and share with DoubleDutch."
 
 
@@ -227,7 +227,7 @@ fi
 info "Testflight Enabled: $testFlightCheck"
 
 if [[ "$testFlightCheck" == "true" ]]; then
-	/usr/libexec/PlistBuddy -c "Add beta-reports-active YES" entitlements.plist
+	/usr/libexec/PlistBuddy -c "Add beta-reports-active bool true" entitlements.plist
 fi
 
 # move the provisioning profile into the app
@@ -235,10 +235,8 @@ cp temp.mobileprovision Payload/Flock.app/embedded.mobileprovision
 
 # This block edits the info.plist
 /usr/libexec/PlistBuddy -c "Set CFBundleIdentifier $reverseUrl" Payload/Flock.app/info.plist
-/usr/libexec/PlistBuddy -c "Set CFBundleURLTypes:0:CFBundleURLName $reverseUrl.custom" Payload/Flock.app/info.plist
-/usr/libexec/PlistBuddy -c "Set CFBundleURLTypes:0:CFBundleURLSchemes:0 $reverseUrl.bundle" Payload/Flock.app/info.plist
-/usr/libexec/PlistBuddy -c "Set CFBundleURLTypes:1:CFBundleURLName $reverseUrl.bundle" Payload/Flock.app/info.plist
-/usr/libexec/PlistBuddy -c "Set CFBundleURLTypes:2:CFBundleURLName $reverseUrl.context_id" Payload/Flock.app/info.plist
+/usr/libexec/PlistBuddy -c "Set CFBundleURLTypes:0:CFBundleURLName $reverseUrl.context_id" Payload/Flock.app/info.plist
+/usr/libexec/PlistBuddy -c "Set CFBundleURLTypes:0:CFBundleURLSchemes:0 dd$contextId" Payload/Flock.app/info.plist
 
 if [[ $versionCustomFlag ]]; then
 	shortVersion=$(/usr/libexec//PlistBuddy -c "Print CFBundleShortVersionString" Payload/Flock.app/info.plist)
@@ -308,7 +306,7 @@ fi
 printf "Validating the signing [    ]\r"
 codesign -dvvv Payload/Flock.app &> validation.txt 
 
-cat validation.txt
+#cat validation.txt
 
 validationReverseURL=$(grep "Identifier" validation.txt | cut -d "=" -f2 | tr "\n" " " | cut -d " " -f1)
 validationTeamDigit=$(grep "TeamIdentifier" validation.txt | cut -d "=" -f2)
