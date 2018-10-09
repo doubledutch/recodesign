@@ -52,7 +52,7 @@ function setTimeSignature {
 	fi
 }
 
-info "This is version 2.2.2"
+info "This is version 2.3.0"
 info "If you run into issues, please take screenshots of your terminal window and share with DoubleDutch."
 
 
@@ -104,7 +104,7 @@ for var do
 		var=("$currentDir/$var")
 		fi
 		mimeType=$(file --mime-type "$var" | cut -d ":" -f2)
-		if [[ "$mimeType" == " application/zip" ]]; then
+		if [[ "$mimeType" == " application/zip" || "$mimeType" == " application/x-ios-app" ]]; then
 			zipCheck=$(unzip -l "$var" | grep Payload/Flock.app | wc -l )
 			if [[ ! $zipCheck == 0 ]]; then
 					app="$var"
@@ -347,10 +347,10 @@ mkdir ~/desktop/Codesign_Output-$datevar
 mv entitlements.plist ~/Desktop/Codesign_Output-$datevar/entitlements.plist
 if [[ $enterpriseOpt == true ]]; then
 		info "Exporting app for Enterprise Distribution"
-		zip -rq  ~/Desktop/Codesign_Output-$datevar/"$finalName"-public-store.ipa Payload/
+		zip -rq  ~/Desktop/Codesign_Output-$datevar/"$finalName"-enterprise-build.ipa Payload/
 	else
 		info "Exporting app for App Store Distribution"
-		zip -rq  ~/Desktop/Codesign_Output-$datevar/"$finalName"-public-store.ipa Payload/ SwiftSupport/
+		zip -rq  ~/Desktop/Codesign_Output-$datevar/"$finalName"-appstore-build.ipa Payload/ SwiftSupport/
 fi
 info "The finished file is on your Desktop in a folder called Codesign_Output-$datevar"
 open ~/Desktop/Codesign_Output-$datevar
