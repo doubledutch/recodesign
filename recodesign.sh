@@ -1,7 +1,7 @@
 #!/bin/sh 
 # This script was written by Kyle Louis at DoubleDutch
 # and is maintained by Dawson Loudon at DoubleDutch
-# Resigning DoubleDutch created ios apps, here we go!
+# Re-signing DoubleDutch created ios apps, here we go!
 # This script requires the path to the .ipa file provided by DoubleDutch
 # This script requires the path to the provisioning profile
 # pass all the arguments in any order
@@ -52,18 +52,18 @@ function setTimeSignature {
 	fi
 }
 
-info "This is version 2.3.0"
+info "This is version 2.3.1"
 info "If you run into issues, please take screenshots of your terminal window and share with DoubleDutch."
 
 
-while getopts "ehtv" opt; do
+while getopts "ehtvE" opt; do
 case "$opt" in
 	e)
 		enterpriseOpt=true
 		info "Enterprise Distribution option enabled."
 		shift 1
-		;;
-  h)
+	;;
+	h)
 		info 'This script requires 2 arguments.
 		The .ipa that DoubleDutch has sent and the provisioning profile.
 		an example might look like this:
@@ -75,21 +75,28 @@ case "$opt" in
 		-v change the version and use a new provisioning profile
 
 		If you run into issues, please take screenshots of your terminal window and share with DoubleDutch.'
-	shift 1
-    ;;
+		shift 1
+	;;
 	t)
-    testFlightOpt=true
+    		testFlightOpt=true
 		info "TestFlight option enabled."
 		shift 1
-    ;;
+    	;;
 	v)
 		versionCustomFlag=true
 		info "Version customization option enabled."
 		shift 1
-    ;;
+    	;;
+	E)
+		enterpriseOpt=true
+                info "Enterprise Distribution option enabled."
+		versionCustomFlag=true
+                info "Version customization option enabled."
+                shift 1
+    	;;
 	\?)
-  	echo "Invalid option: -$OPTARG" >&2
-    ;;
+  		echo "Invalid option: -$OPTARG" >&2
+    	;;
 esac
 done
 
