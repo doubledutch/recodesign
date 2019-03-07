@@ -42,13 +42,14 @@ sh path/to/recodesign.sh path/to/app.ipa path/to/profile.mobileprovision
   * `h` help
   * `t` enable TestFlight option in script (TestFlight is enabled by default)
   * `v` change the version and use a new provisioning profile
+  * `E` the same as -e and -v, enterprise signing and custom versions
 
 ```
 sh path/to/recodesign.sh -e path/to/app.ipa path/to/profile.mobileprovision
 ```
 or 
 ```
-sh path/to/recodesign.sh -etv path/to/app.ipa path/to/profile.mobileprovision
+sh path/to/recodesign.sh -E path/to/app.ipa path/to/profile.mobileprovision
 ```
 * When finished you will have a folder on your Desktop called 'Codesign_Output'. 
 	* In this folder you will find the .ipa file ready to be submitted or distributed and the entitlements.plist file that was used in codesigning; this file can be helpful in troubleshooting. 
