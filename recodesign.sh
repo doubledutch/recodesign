@@ -24,6 +24,7 @@ function setTimeSignature {
 	sig2=^\([0-9]{1,2}\)[[:space:]]\([A-Za-z]*\),[[:space:]]\([0-9]{4}\)
 	sig3=^\([A-Za-z]*\)[[:space:]]\([0-9]{1,2}\),[[:space:]]\([0-9]{4}\)
 	sig4=^\([0-9]{1,2}\)[[:space:]]\([A-Za-z]*\)[[:space:]]\([0-9]{4}\)
+  sig5=^\([0-9]{1,2}\)-\([A-Za-z]*\)-\([0-9]{4}\)
 
 	if [[ "$1" =~ $sig1 ]]; then
 		timeSignature="%d. %b %Y"
@@ -45,6 +46,11 @@ function setTimeSignature {
 		matchedSig=true
 	fi
 
+  if [[ "$1" =~ $sig5 ]]; then
+    timeSignature="%d-%b-%Y"
+    matchedSig=true
+  fi
+
 	if ! [[ "$matchedSig" ]]; then
 		error "Signature date is not recognised. Please take a screenshot and contact customer support. Invalid signature date: $1"
 	else
@@ -52,7 +58,7 @@ function setTimeSignature {
 	fi
 }
 
-info "This is version 2.3.1"
+info "This is version 2.3.2"
 info "If you run into issues, please take screenshots of your terminal window and share with DoubleDutch."
 
 
